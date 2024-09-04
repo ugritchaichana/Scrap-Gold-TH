@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import requests
 from bs4 import BeautifulSoup
-from sqlalchemy import create_engine, Column, Integer, DateTime, Numeric
+from sqlalchemy import create_engine, Column, Integer, DateTime, Numeric, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
@@ -67,5 +67,15 @@ def scrap_gold_th():
         result = store_data(data)
         return {"status": "success", **result}
     return {"status": "failure", "message": "Failed to scrape data or data is invalid."}
+
+@app.get("/")
+def health_check():
+    try:
+        db = SessionLocal()
+        db.execute(text('SELECT 1'))
+        db.close()
+        return {"status": "OK", "message": "Service is running."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
 handler = Mangum(app)
