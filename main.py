@@ -6,6 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
 from mangum import Mangum
+from google.cloud import functions_v1
 
 app = FastAPI()
 
@@ -74,8 +75,10 @@ def health_check():
         db = SessionLocal()
         db.execute(text('SELECT 1'))
         db.close()
-        return {"status": "OK", "message": "Service is running."}
+        return {"status": "healthy", "message": "Service is up and running."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connection error: {e}")
 
-handler = Mangum(app)
+# Entry point for Google Cloud Functions
+def main(request):
+    return Mangum(app)(request)
